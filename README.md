@@ -71,7 +71,7 @@ sqsMiddleware.getHtml( "work", null, function ( data ) {
 
 // Get html AND json for a page
 // Pass null for {qrs} hash if not passing query string
-sqsMiddleware.getHtml( "work", null, function ( data ) {
+sqsMiddleware.getJsonAndHtml( "work", null, function ( data ) {
     // data = {json: {json, status}, html: {html, status}}
 });
 
