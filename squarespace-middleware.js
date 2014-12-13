@@ -295,12 +295,12 @@ getQuery = function ( data, qrs, callback ) {
     qrs.format = "json";
 
     // Tag?
-    if ( data.tag ) {
+    if ( data.tag === "true" ) {
         qrs.tag = data.tag;
     }
 
     // Category?
-    if ( data.category ) {
+    if ( data.category === "true" ) {
         qrs.category = data.category;
     }
 
@@ -320,7 +320,7 @@ getQuery = function ( data, qrs, callback ) {
         var items = [];
 
         // Featured?
-        if ( data.featured ) {
+        if ( data.featured === "true" ) {
             for ( i = 0, len = json.items.length; i < len; i++ ) {
                 if ( json.items[ i ].starred ) {
                     items.push( json.items[ i ] );
@@ -331,8 +331,8 @@ getQuery = function ( data, qrs, callback ) {
         }
 
         // Limit?
-        if ( data.limit ) {
-            json.items.splice( 0, (json.items.length - data.limit) );
+        if ( data.limit === "true" ) {
+            json.items.splice( 0, (json.items.length - parseInt(data.limit)) );
         }
 
         callback( json );
