@@ -180,6 +180,10 @@ getHtml = function ( url, qrs, callback ) {
         qrs.password = get( "sitepassword" );
     }
 
+    if ( qrs.format ) {
+        delete qrs.format;
+    }
+
     request({
         url: url,
         headers: getHeaders(),
