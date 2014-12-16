@@ -21,7 +21,7 @@ var _ = require( "underscore" ),
         sitepassword: null,
         useremail: null,
         userpassword: null,
-        caching: false
+        sandboxmode: false
     },
 
 
@@ -428,7 +428,7 @@ getHeaders = function ( headers ) {
         ret = _.extend( ret, headers );
     }
 
-    return ret;
+    return ((get( "sandboxmode" ) && sqsLoginHeaders) ? sqsLoginHeaders : ret);
 };
 
 
