@@ -30,6 +30,9 @@ sqsMiddleware.set( "userpassword", "yourpassword" );
 
 // If you have a sitewide password enabled
 sqsMiddleware.set( "sitepassword", "yoursitepassword" );
+
+// If you are using a site in sandbox trial mode
+sqsMiddleware.set( "sandboxmode", true );
 ```
 
 #### Authentication
