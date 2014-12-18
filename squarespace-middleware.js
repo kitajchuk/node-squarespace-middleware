@@ -84,6 +84,10 @@ doLogin = function ( callback ) {
     }, function ( error, response, json ) {
         if ( error ) {
             log( "ERROR - " + error );
+
+            // Errors first
+            callback( error, null );
+
             return;
         }
 
@@ -97,6 +101,10 @@ doLogin = function ( callback ) {
         }, function ( error, response ) {
             if ( error ) {
                 log( "ERROR - " + error );
+
+                // Errors first
+                callback( error, null );
+
                 return;
             }
 
@@ -115,7 +123,8 @@ doLogin = function ( callback ) {
             // Store crumb here
             sqsLoginCrumb = cookieParsed.crumb;
 
-            callback( headers );
+            // Errors first, there are none :-)
+            callback( null, headers );
         });
     });
 },
@@ -133,7 +142,8 @@ getAPIData = function ( callback ) {
             (get( "siteurl" ) + API_GET_SITELAYOUT),
             (get( "siteurl" ) + API_GET_COLLECTIONS),
         ],
-        data = {};
+        data = {},
+        errors = [];
 
     function getAPI() {
         var api = apis.shift();
@@ -145,11 +155,18 @@ getAPIData = function ( callback ) {
             qs: sqsUser
 
         }, function ( error, response, json ) {
+            if ( error ) {
+                log( "ERROR - " + error );
+
+                errors.push( error );
+            }
+
             // All done, load the site
             if ( !apis.length ) {
                 data.collections = json;
 
-                callback( data );
+                // Errors first
+                callback( (errors.length ? errors : null), data );
 
             } else {
                 data.siteLayout = json;
@@ -192,10 +209,10 @@ getHtml = function ( url, qrs, callback ) {
     }, function ( error, response, html ) {
         if ( error ) {
             log( "ERROR - " + error );
-            return;
         }
 
-        callback({
+        // Errors first
+        callback( error, {
             html: html,
             status: response.statusCode
         });
@@ -231,10 +248,10 @@ getJson = function ( url, qrs, callback ) {
     }, function ( error, response, json ) {
         if ( error ) {
             log( "ERROR - " + error );
-            return;
         }
 
-        callback({
+        // Errors first
+        callback( error, {
             json: json,
             status: response.statusCode
         });
@@ -252,15 +269,24 @@ getJson = function ( url, qrs, callback ) {
  *
  */
 getJsonAndHtml = function ( url, qrs, callback ) {
-    var res = {};
+    var res = {},
+        errors = [];
 
-    getJson( url, qrs, function ( json ) {
+    getJson( url, qrs, function ( error, json ) {
+        if ( error ) {
+            errors.push( error );
+        }
+
         res.json = json;
 
-        getHtml( url, qrs, function ( html ) {
+        getHtml( url, qrs, function ( error, html ) {
+            if ( error ) {
+                errors.push( error );
+            }
+
             res.html = html;
 
-            callback( res );
+            callback( (errors.length ? errors : null), res );
         });
     });
 },
@@ -314,7 +340,6 @@ getQuery = function ( data, qrs, callback ) {
     }, function ( error, response, json ) {
         if ( error ) {
             log( "ERROR - " + error );
-            return;
         }
 
         var items = [];
@@ -335,7 +360,8 @@ getQuery = function ( data, qrs, callback ) {
             json.items.splice( 0, (json.items.length - data.limit) );
         }
 
-        callback( json );
+        // Errors first
+        callback( error, json );
     });
 },
 
@@ -356,15 +382,17 @@ getBlockJson = function ( blockId, callback ) {
         qs: sqsUser
 
     }, function ( error, response, json ) {
-        if ( error ) {
-            log( "ERROR - " + error );
-            return;
+        // Pass empty block as error
+        if ( !json ) {
+            error = "Empty block JSON";
         }
 
-        // check first, block could be "undefined"
-        if ( json ) {
-            callback( json );
+        if ( error ) {
+            log( "ERROR - " + error );
         }
+
+        // Errors first
+        callback( error, json );
     });
 },
 
@@ -391,9 +419,14 @@ getWidgetHtml = function ( blockJSON, callback ) {
         }
 
     }, function ( error, response, string ) {
+        if ( error ) {
+            log( "ERROR - " + error );
+        }
+
         string = string.replace( /\\uFFFD/g, "" );
 
-        callback( JSON.parse( string ) );
+        // Errors first
+        callback( error, JSON.parse( string ) );
     });
 },
 
