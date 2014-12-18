@@ -38,7 +38,7 @@ sqsMiddleware.set( "sandboxmode", true );
 #### Authentication
 ```javascript
 // Perform the auth login
-sqsMiddleware.doLogin(function ( headers ) {
+sqsMiddleware.doLogin(function ( error, headers ) {
     // Do stuff here
     // headers = validated headers
 });
@@ -53,34 +53,34 @@ sqsMiddleware.getQuery({
     limit: 6
 
 // Pass null for {qrs} hash if not passing query string
-}, null, function ( data ) {
+}, null, function ( error, data ) {
     // data = JSON for page collection
 });
 
 
 // Get json for a page
 // Pass null for {qrs} hash if not passing query string
-sqsMiddleware.getJson( "work", null, function ( data ) {
+sqsMiddleware.getJson( "work", null, function ( error, data ) {
     // data = {json, status}
 });
 
 
 // Get html for a page
 // Pass null for {qrs} hash if not passing query string
-sqsMiddleware.getHtml( "work", null, function ( data ) {
+sqsMiddleware.getHtml( "work", null, function ( error, data ) {
     // data = {html, status}
 });
 
 
 // Get html AND json for a page
 // Pass null for {qrs} hash if not passing query string
-sqsMiddleware.getJsonAndHtml( "work", null, function ( data ) {
+sqsMiddleware.getJsonAndHtml( "work", null, function ( error, data ) {
     // data = {json: {json, status}, html: {html, status}}
 });
 
 
 // Get API data for collections and siteLayout
-sqsMiddleware.getAPIData(function ( data ) {
+sqsMiddleware.getAPIData(function ( error, data ) {
     // data = {collections, siteLayout}
 });
 
@@ -88,11 +88,11 @@ sqsMiddleware.getAPIData(function ( data ) {
 // Get a block rendered through LayoutEngine
 // This is a complicated process and is primarily in place to support the node-squarespace-server
 // But for example, this is how you would render the first block for a given block id
-sqsMiddleware.getBlockJson( blockId, function ( json ) {
+sqsMiddleware.getBlockJson( blockId, function ( error, json ) {
     // get just the first block
     var block = json.data.layout.rows[ 0 ].columns[ 0 ].blocks[ 0 ]
 
-    sqsMiddleware.getWidgetHtml( block, function ( data ) {
+    sqsMiddleware.getWidgetHtml( block, function ( error, data ) {
         // data = {html}, or the rendered html for the block widget
     });
 });
