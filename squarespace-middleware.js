@@ -13,6 +13,9 @@ var _ = require( "underscore" ),
     API_GET_BLOCKFIELDS = "/api/block-fields/",
     API_GET_WIDGETRENDERING = "/api/widget/GetWidgetRendering/",
     API_AUTH_LOGIN = "/api/auth/Login/",
+    // /api/template/GetTemplate?templateId=
+    // /api/commondata/GetCollection?collectionId
+    // /api/page-collection-data/collectionId=
     sqsUser = null,
     sqsLoginHeaders = null,
     sqsLoginCrumb = null,
@@ -384,11 +387,16 @@ getBlockJson = function ( blockId, callback ) {
     }, function ( error, response, json ) {
         // Pass empty block as error
         if ( !json ) {
-            error = "Empty block JSON";
+            json = { error: "Empty block JSON" };
         }
 
-        if ( error ) {
-            log( "ERROR - " + error );
+        // Error can come as result
+        if ( error || json.error ) {
+            error = (json.error ? json.error : error);
+
+            log( "BLOCK ERROR - " + error );
+
+            json = null;
         }
 
         // Errors first
@@ -414,19 +422,24 @@ getWidgetHtml = function ( blockJSON, callback ) {
             crumb: sqsLoginCrumb
         },
         form: {
-            widgetJSON: JSON.stringify( blockJSON ),
-            collectionId: ""
+            widgetJSON: JSON.stringify( blockJSON )
+            //collectionId: ""
         }
 
     }, function ( error, response, string ) {
-        if ( error ) {
-            log( "ERROR - " + error );
+        var json = JSON.parse( string.replace( /\\uFFFD/g, "" ) );
+
+        // Error can come as result
+        if ( error || json.error ) {
+            error = (json.error ? json.error : error);
+
+            log( "WIDGET ERROR - " + error );
+
+            json = null;
         }
 
-        string = string.replace( /\\uFFFD/g, "" );
-
         // Errors first
-        callback( error, JSON.parse( string ) );
+        callback( error, json );
     });
 },
 
