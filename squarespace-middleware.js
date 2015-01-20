@@ -348,7 +348,7 @@ getQuery = function ( data, qrs, callback ) {
         var items = [];
 
         // Featured?
-        if ( data.featured ) {
+        if ( data.featured && json.items ) {
             for ( i = 0, len = json.items.length; i < len; i++ ) {
                 if ( json.items[ i ].starred ) {
                     items.push( json.items[ i ] );
@@ -359,7 +359,7 @@ getQuery = function ( data, qrs, callback ) {
         }
 
         // Limit?
-        if ( data.limit ) {
+        if ( data.limit && json.items ) {
             json.items.splice( 0, (json.items.length - data.limit) );
         }
 
