@@ -5,8 +5,6 @@
  */
 var _ = require( "underscore" ),
     request = require( "request" ),
-    path = require( "path" ),
-    fs = require( "fs" ),
     cookieParser = require( "cookie" ),
     API_GET_SITELAYOUT = "/api/commondata/GetSiteLayout/",
     API_GET_COLLECTIONS = "/api/commondata/GetCollections/",
