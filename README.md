@@ -96,6 +96,10 @@ sqsMiddleware.getBlockJson( blockId, function ( error, json ) {
         // data = {html}, or the rendered html for the block widget
     });
 });
+
+
+// Retrieve the logged in crumb
+sqsMiddleware.getCrumb();
 ```
 
 
@@ -117,6 +121,7 @@ sqsMiddleware.getBlockJson( blockId, function ( error, json ) {
 - getAPIData( callback )
 - getBlockJson( blockId, callback )
 - getWidgetHtml( blockJSON, callback )
+- getCrumb()
 
 
 
