@@ -57,6 +57,17 @@ get = function ( key ) {
 
 /**
  *
+ * @method getCrumb
+ * @public
+ *
+ */
+getCrumb = function () {
+    return sqsLoginCrumb;
+},
+
+
+/**
+ *
  * @method doLogin
  * @param {function} callback Fired when login and headers are set
  * @public
@@ -488,6 +499,7 @@ module.exports = {
     doLogin: doLogin,
 
     // getter for requests
+    getCrumb: getCrumb,
     getQuery: getQuery,
     getJson: getJson,
     getHtml: getHtml,
