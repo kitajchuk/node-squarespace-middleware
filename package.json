@@ -1,40 +1,41 @@
 {
-    "title": "Node Squarespace Middleware",
-    "name": "node-squarespace-middleware",
-    "description": "Middleware for interfacing with a Squarespace site using a third-party node-js app.",
-    "version": "0.1.7",
-    "homepage": "https://github.com/kitajchuk/node-squarespace-middleware",
-    "readmeFilename": "README.md",
-    "contributors": [
-        {
-            "name": "Brandon Kitajchuk",
-            "email": "kitajchuk@gmail.com",
-            "url": "http://blkpdx.com"
-        }
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/kitajchuk/node-squarespace-middleware.git"
-    },
-    "bugs": {
-        "url": "https://github.com/kitajchuk/node-squarespace-middleware/issues"
-    },
-    "licenses": [
-        {
-            "type": "MIT",
-            "url": "https://github.com/kitajchuk/node-squarespace-middleware/blob/master/LICENSE"
-        }
-    ],
-    "main": "squarespace-middleware",
-    "dependencies": {
-        "request": "~2",
-        "underscore": "~1.7",
-        "cookie": "~0.1"
-    },
-    "keywords": [
-        "squarespace",
-        "json-template",
-        "middleware",
-        "request"
-    ]
+  "title": "Node Squarespace Middleware",
+  "name": "node-squarespace-middleware",
+  "description": "Middleware for interfacing with a Squarespace site using a third-party node-js app.",
+  "version": "0.2.0",
+  "homepage": "https://github.com/kitajchuk/node-squarespace-middleware",
+  "readmeFilename": "README.md",
+  "contributors": [
+    {
+      "name": "Brandon Kitajchuk",
+      "email": "kitajchuk@gmail.com",
+      "url": "http://blkpdx.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kitajchuk/node-squarespace-middleware.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kitajchuk/node-squarespace-middleware/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/kitajchuk/node-squarespace-middleware/blob/master/LICENSE"
+    }
+  ],
+  "main": "squarespace-middleware",
+  "dependencies": {
+    "cookie": "~0.1",
+    "node-squarespace-logger": "^0.1.0",
+    "request": "~2",
+    "underscore": "~1.7"
+  },
+  "keywords": [
+    "squarespace",
+    "json-template",
+    "middleware",
+    "request"
+  ]
 }

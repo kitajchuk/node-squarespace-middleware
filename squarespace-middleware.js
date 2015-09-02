@@ -6,6 +6,7 @@
 var _ = require( "underscore" ),
     request = require( "request" ),
     cookieParser = require( "cookie" ),
+    sqsLogger = require( "node-squarespace-logger" ),
     API_GET_SITELAYOUT = "/api/commondata/GetSiteLayout/",
     API_GET_COLLECTIONS = "/api/commondata/GetCollections/",
     API_GET_BLOCKFIELDS = "/api/block-fields/",
@@ -94,8 +95,11 @@ doLogin = function ( callback ) {
         form: sqsUser
 
     }, function ( error, response, json ) {
-        if ( error ) {
-            log( "ERROR - " + error );
+        // Error can come as result
+        if ( error || json.error ) {
+            error = (json.error ? json.error : error);
+
+            sqsLogger.log( "error", ("Error posting to Squarespace login with middleware => " + error) );
 
             // Errors first
             callback( error, null );
@@ -112,7 +116,7 @@ doLogin = function ( callback ) {
 
         }, function ( error, response ) {
             if ( error ) {
-                log( "ERROR - " + error );
+                sqsLogger.log( "error", ("Error requesting secure login token from Squarespace with middleware => " + error) );
 
                 // Errors first
                 callback( error, null );
@@ -167,8 +171,11 @@ getAPIData = function ( callback ) {
             qs: sqsUser
 
         }, function ( error, response, json ) {
-            if ( error ) {
-                log( "ERROR - " + error );
+            // Error can come as result
+            if ( error || json.error ) {
+                error = (json.error ? json.error : error);
+
+                sqsLogger.log( "error", ("Error fetching API data from Squarespace with middleware => " + error) );
 
                 errors.push( error );
             }
@@ -220,7 +227,7 @@ getHtml = function ( url, qrs, callback ) {
 
     }, function ( error, response, html ) {
         if ( error ) {
-            log( "ERROR - " + error );
+            sqsLogger.log( "error", ("Error requesting page html from Squarespace with middleware => " + error) );
         }
 
         // Errors first
@@ -258,8 +265,11 @@ getJson = function ( url, qrs, callback ) {
         qs: qrs
 
     }, function ( error, response, json ) {
-        if ( error ) {
-            log( "ERROR - " + error );
+        // Error can come as result
+        if ( error || json.error ) {
+            error = (json.error ? json.error : error);
+
+            sqsLogger.log( "error", ("Error requesting page json from Squarespace with middleware => " + error) );
         }
 
         // Errors first
@@ -350,8 +360,11 @@ getQuery = function ( data, qrs, callback ) {
         qs: qrs
 
     }, function ( error, response, json ) {
-        if ( error ) {
-            log( "ERROR - " + error );
+        // Error can come as result
+        if ( error || json.error ) {
+            error = (json.error ? json.error : error);
+
+            sqsLogger.log( "error", ("Error requesting Squarespace:query with middleware => " + error) );
         }
 
         var items = [];
@@ -403,7 +416,7 @@ getBlockJson = function ( blockId, callback ) {
         if ( error || json.error ) {
             error = (json.error ? json.error : error);
 
-            log( "BLOCK ERROR - " + error );
+            sqsLogger.log( "error", ("Error requesting block json from Squarespace with middleware => " + error) );
 
             json = null;
         }
@@ -442,7 +455,7 @@ getWidgetHtml = function ( blockJSON, callback ) {
         if ( error || json.error ) {
             error = (json.error ? json.error : error);
 
-            log( "WIDGET ERROR - " + error );
+            sqsLogger.log( "error", ("Error requesting widget html from Squarespace with middleware => " + error) );
 
             json = null;
         }
@@ -456,15 +469,6 @@ getWidgetHtml = function ( blockJSON, callback ) {
 /******************************************************************************
  * @Private
 *******************************************************************************/
-
-log = function () {
-    var args = [].slice.call( arguments, 0 );
-
-    args.unshift( "> sqs-middleware:" );
-
-    console.log.apply( console, args );
-},
-
 
 /**
  *
