@@ -1,7 +1,7 @@
 {
   "title": "Node Squarespace Middleware",
   "name": "node-squarespace-middleware",
-  "description": "Middleware for interfacing with a Squarespace site using a third-party node-js app.",
+  "description": "Interface with a Squarespace site using a node.js application.",
   "version": "0.2.1",
   "homepage": "https://github.com/NodeSquarespace/node-squarespace-middleware",
   "readmeFilename": "README.md",
