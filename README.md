@@ -1,7 +1,7 @@
 node-squarespace-middleware
 ===========================
 
-> Middleware for interfacing with a Squarespace site using a third-party node-js app.
+> Interface with a Squarespace site using a node.js application.
 
 
 ### Installation
