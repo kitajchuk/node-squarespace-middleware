@@ -7,14 +7,18 @@ var _ = require( "underscore" ),
     request = require( "request" ),
     cookieParser = require( "cookie" ),
     sqsLogger = require( "node-squarespace-logger" ),
+
+    API_AUTH_LOGIN = "/api/auth/Login/",
     API_GET_SITELAYOUT = "/api/commondata/GetSiteLayout/",
     API_GET_COLLECTIONS = "/api/commondata/GetCollections/",
     API_GET_BLOCKFIELDS = "/api/block-fields/",
     API_GET_WIDGETRENDERING = "/api/widget/GetWidgetRendering/",
-    API_AUTH_LOGIN = "/api/auth/Login/",
-    // /api/template/GetTemplate?templateId=
-    // /api/commondata/GetCollection?collectionId
-    // /api/page-collection-data/collectionId=
+    API_GET_TEMPLATETWEAKSETTINGS = "/api/template/GetTemplateTweakSettings/",
+    //api/template/GetTemplate?templateId=
+    //api/commondata/GetCollection?collectionId=
+    //api/page-collection-data/collectionId=
+    //api/templates/:templateId
+
     sqsUser = null,
     sqsLoginHeaders = null,
     sqsLoginCrumb = null,
@@ -155,8 +159,18 @@ doLogin = function ( callback ) {
  */
 getAPIData = function ( callback ) {
     var apis = [
-            (get( "siteurl" ) + API_GET_SITELAYOUT),
-            (get( "siteurl" ) + API_GET_COLLECTIONS),
+            {
+                key: "siteLayout",
+                url: (get( "siteurl" ) + API_GET_SITELAYOUT)
+            },
+            {
+                key: "collections",
+                url: (get( "siteurl" ) + API_GET_COLLECTIONS)
+            },
+            {
+                key: "templateTweakSettings",
+                url: (get( "siteurl" ) + API_GET_TEMPLATETWEAKSETTINGS)
+            }
         ],
         data = {},
         errors = [];
@@ -165,7 +179,7 @@ getAPIData = function ( callback ) {
         var api = apis.shift();
 
         request({
-            url: api,
+            url: api.url,
             json: true,
             headers: sqsLoginHeaders,
             qs: sqsUser
@@ -180,16 +194,15 @@ getAPIData = function ( callback ) {
                 errors.push( error );
             }
 
-            // All done, load the site
-            if ( !apis.length ) {
-                data.collections = json;
+            // Store API data for callback
+            data[ api.key ] = json;
 
+            // All done, pass the API data to callback
+            if ( !apis.length ) {
                 // Errors first
                 callback( (errors.length ? errors : null), data );
 
             } else {
-                data.siteLayout = json;
-
                 getAPI();
             }
         });
