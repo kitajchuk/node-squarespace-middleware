@@ -39,6 +39,11 @@ var _ = require( "underscore" ),
  *
  */
 set = function ( key, val ) {
+    // If the user left a trailing slash on the siteurl, remove it.
+    if (key === 'siteurl' && val.charAt(val.length - 1) === '/') {
+      val = val.replace(/\/$/, '');
+    }
+
     config[ key ] = val;
 },
 
