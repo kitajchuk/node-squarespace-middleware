@@ -13,7 +13,7 @@ var _ = require( "underscore" ),
     API_GET_COLLECTIONS = "/api/commondata/GetCollections/",
     API_GET_BLOCKFIELDS = "/api/block-fields/",
     API_GET_WIDGETRENDERING = "/api/widget/GetWidgetRendering/",
-    API_GET_TEMPLATETWEAKSETTINGS = "/api/template/GetTemplateTweakSettings/",
+    //API_GET_TEMPLATETWEAKSETTINGS = "/api/template/GetTemplateTweakSettings/",
     //api/template/GetTemplate?templateId=
     //api/commondata/GetCollection?collectionId=
     //api/page-collection-data/collectionId=
@@ -171,10 +171,6 @@ getAPIData = function ( callback ) {
             {
                 key: "collections",
                 url: (get( "siteurl" ) + API_GET_COLLECTIONS)
-            },
-            {
-                key: "templateTweakSettings",
-                url: (get( "siteurl" ) + API_GET_TEMPLATETWEAKSETTINGS)
             }
         ],
         data = {},
@@ -227,7 +223,7 @@ getAPIData = function ( callback ) {
  *
  */
 getHtml = function ( url, qrs, callback ) {
-    url = (get( "siteurl" ) + "/" + url.replace( /^\/|\/$/g, "" ) + "/");
+    url = [get( "siteurl" ), url.replace( /^\/|\/$/g, "" )].join( "/" );
     qrs = (qrs || {});
 
     if ( get( "sitepassword" ) ) {
@@ -267,7 +263,7 @@ getHtml = function ( url, qrs, callback ) {
  *
  */
 getJson = function ( url, qrs, callback ) {
-    url = (get( "siteurl" ) + "/" + url.replace( /^\/|\/$/g, "" ) + "/");
+    url = [get( "siteurl" ), url.replace( /^\/|\/$/g, "" )].join( "/" );
     qrs = (qrs || {});
 
     if ( get( "sitepassword" ) ) {
