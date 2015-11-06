@@ -230,7 +230,10 @@ getHtml = function ( url, qrs, callback ) {
         qrs.password = get( "sitepassword" );
     }
 
-    if ( qrs.format ) {
+    // Don't allow `json` formatted requests to pass here
+    // But allow others, such as `main-content`
+    // @see: https://github.com/NodeSquarespace/node-squarespace-server/issues/128
+    if ( qrs.format && qrs.format.indexOf( "json" ) !== -1 ) {
         delete qrs.format;
     }
 
