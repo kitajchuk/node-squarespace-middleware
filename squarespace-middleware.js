@@ -11,11 +11,11 @@ var _ = require( "underscore" ),
     API_AUTH_LOGIN = "/api/auth/Login/",
     API_GET_SITELAYOUT = "/api/commondata/GetSiteLayout/",
     API_GET_COLLECTIONS = "/api/commondata/GetCollections/",
+    API_GET_COLLECTION = "/api/commondata/GetCollection/",
     API_GET_BLOCKFIELDS = "/api/block-fields/",
     API_GET_WIDGETRENDERING = "/api/widget/GetWidgetRendering/",
     //API_GET_TEMPLATETWEAKSETTINGS = "/api/template/GetTemplateTweakSettings/",
     //api/template/GetTemplate?templateId=
-    //api/commondata/GetCollection?collectionId=
     //api/page-collection-data/collectionId=
     //api/templates/:templateId
 
@@ -157,6 +157,37 @@ doLogin = function ( callback ) {
 
 /**
  *
+ * @method getAPICollection
+ * @param {string} collectionId ID of collection to get
+ * @param {function} callback Fired when data is fetched
+ * @public
+ *
+ */
+getAPICollection = function ( collectionId, callback ) {
+    request({
+        url: (get( "siteurl" ) + API_GET_COLLECTION),
+        json: true,
+        headers: sqsLoginHeaders,
+        qs: _.extend( {collectionId: collectionId}, sqsUser )
+
+    }, function ( error, response, json ) {
+        // Error can come as result
+        if ( error || json.error ) {
+            error = (json.error ? json.error : error);
+
+            sqsLogger.log( "error", ("Error requesting collection data from Squarespace with middleware => " + error) );
+
+        } else {
+            sqsLogger.log( "info", ("Fetched fullData for collection " + collectionId) );
+
+            callback( json );
+        }
+    });
+},
+
+
+/**
+ *
  * @method getAPIData
  * @param {function} callback Fired when data is fetched
  * @public
@@ -178,6 +209,8 @@ getAPIData = function ( callback ) {
 
     function getAPI() {
         var api = apis.shift();
+        var collections = [];
+        var curr = 0;
 
         request({
             url: api.url,
@@ -200,8 +233,23 @@ getAPIData = function ( callback ) {
 
             // All done, pass the API data to callback
             if ( !apis.length ) {
-                // Errors first
-                callback( (errors.length ? errors : null), data );
+                // Now get the fullData for each collection
+                for ( var id in data.collections.collections ) {
+                    collections.push( data.collections.collections[ id ] );
+                }
+
+                collections.forEach(function ( collection ) {
+                    getAPICollection( collection.id, function ( collection ) {
+                        curr++;
+
+                        data.collections.collections[ collection.id ] = collection;
+
+                        if ( curr === collections.length ) {
+                            // Errors first
+                            callback( (errors.length ? errors : null), data );
+                        }
+                    });
+                });
 
             } else {
                 getAPI();

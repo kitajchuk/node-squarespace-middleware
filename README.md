@@ -119,6 +119,7 @@ sqsMiddleware.getCrumb();
 - getHtml( url, qrs, callback )
 - getJsonAndHtml( url, qrs, callback )
 - getAPIData( callback )
+- getAPICollection( collectionId, callback )
 - getBlockJson( blockId, callback )
 - getWidgetHtml( blockJSON, callback )
 - getCrumb()
