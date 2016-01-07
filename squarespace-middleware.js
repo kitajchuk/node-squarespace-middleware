@@ -14,9 +14,9 @@ var _ = require( "underscore" ),
     API_GET_COLLECTION = "/api/commondata/GetCollection/",
     API_GET_BLOCKFIELDS = "/api/block-fields/",
     API_GET_WIDGETRENDERING = "/api/widget/GetWidgetRendering/",
-    //API_GET_TEMPLATETWEAKSETTINGS = "/api/template/GetTemplateTweakSettings/",
+    //api/template/GetTemplateTweakSettings/
     //api/template/GetTemplate?templateId=
-    //api/page-collection-data/collectionId=
+    //api/page-collection-data?collectionId=
     //api/templates/:templateId
 
     sqsUser = null,
@@ -45,8 +45,8 @@ var _ = require( "underscore" ),
  */
 set = function ( key, val ) {
     // If the user left a trailing slash on the siteurl, remove it.
-    if (key === 'siteurl' && val.charAt(val.length - 1) === '/') {
-      val = val.replace(/\/$/, '');
+    if ( key === "siteurl" && val.charAt( val.length - 1 ) === "/" ) {
+        val = val.replace( /\/$/, "" );
     }
 
     config[ key ] = val;
@@ -104,10 +104,9 @@ doLogin = function ( callback ) {
         form: sqsUser
 
     }, function ( error, response, json ) {
-        // Error can come as result
-        if ( error || json.error ) {
-            error = (json.error ? json.error : error);
+        error = getError( error, json );
 
+        if ( error ) {
             sqsLogger.log( "error", ("Error posting to Squarespace login with middleware => " + error) );
 
             // Errors first
@@ -124,6 +123,8 @@ doLogin = function ( callback ) {
             qs: sqsUser
 
         }, function ( error, response ) {
+            error = getError( error );
+
             if ( error ) {
                 sqsLogger.log( "error", ("Error requesting secure login token from Squarespace with middleware => " + error) );
 
@@ -171,10 +172,9 @@ getAPICollection = function ( collectionId, callback ) {
         qs: _.extend( {collectionId: collectionId}, sqsUser )
 
     }, function ( error, response, json ) {
-        // Error can come as result
-        if ( error || json.error ) {
-            error = (json.error ? json.error : error);
+        error = getError( error, json );
 
+        if ( error ) {
             sqsLogger.log( "error", ("Error requesting collection data from Squarespace with middleware => " + error) );
 
         } else {
@@ -219,10 +219,9 @@ getAPIData = function ( callback ) {
             qs: sqsUser
 
         }, function ( error, response, json ) {
-            // Error can come as result
-            if ( error || json.error ) {
-                error = (json.error ? json.error : error);
+            error = getError( error, json );
 
+            if ( error ) {
                 sqsLogger.log( "error", ("Error fetching API data from Squarespace with middleware => " + error) );
 
                 errors.push( error );
@@ -291,6 +290,8 @@ getHtml = function ( url, qrs, callback ) {
         qs: qrs
 
     }, function ( error, response, html ) {
+        error = getError( error );
+
         if ( error ) {
             sqsLogger.log( "error", ("Error requesting page html from Squarespace with middleware => " + error) );
         }
@@ -330,10 +331,9 @@ getJson = function ( url, qrs, callback ) {
         qs: qrs
 
     }, function ( error, response, json ) {
-        // Error can come as result
-        if ( error || json.error ) {
-            error = (json.error ? json.error : error);
+        error = getError( error, json );
 
+        if ( error ) {
             sqsLogger.log( "error", ("Error requesting page json from Squarespace with middleware => " + error) );
         }
 
@@ -425,10 +425,9 @@ getQuery = function ( data, qrs, callback ) {
         qs: qrs
 
     }, function ( error, response, json ) {
-        // Error can come as result
-        if ( error || json.error ) {
-            error = (json.error ? json.error : error);
+        error = getError( error, json );
 
+        if ( error ) {
             sqsLogger.log( "error", ("Error requesting Squarespace:query with middleware => " + error) );
         }
 
@@ -472,15 +471,15 @@ getBlockJson = function ( blockId, callback ) {
         qs: sqsUser
 
     }, function ( error, response, json ) {
-        // Pass empty block as error
+        // Pass Error on empty block JSON
         if ( !json ) {
             json = { error: "Empty block JSON" };
         }
 
-        // Error can come as result
-        if ( error || json.error ) {
-            error = (json.error ? json.error : error);
+        error = getError( error, json );
 
+        // Error can come as result
+        if ( error ) {
             sqsLogger.log( "error", ("Error requesting block json from Squarespace with middleware => " + error) );
 
             json = null;
@@ -516,10 +515,9 @@ getWidgetHtml = function ( blockJSON, callback ) {
     }, function ( error, response, string ) {
         var json = JSON.parse( string.replace( /\\uFFFD/g, "" ) );
 
-        // Error can come as result
-        if ( error || json.error ) {
-            error = (json.error ? json.error : error);
+        error = getError( error, json );
 
+        if ( error ) {
             sqsLogger.log( "error", ("Error requesting widget html from Squarespace with middleware => " + error) );
 
             json = null;
@@ -534,6 +532,17 @@ getWidgetHtml = function ( blockJSON, callback ) {
 /******************************************************************************
  * @Private
 *******************************************************************************/
+
+/**
+ *
+ * @method getError
+ * @description Normalize error handling based on Squarespace's responses
+ * @private
+ *
+ */
+getError = function ( error, json ) {
+    return (typeof json === "object" && json.error ? json.error : error);
+},
 
 /**
  *
