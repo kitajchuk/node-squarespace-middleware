@@ -33,6 +33,9 @@ sqsMiddleware.set( "sitepassword", "yoursitepassword" );
 
 // If you are using a site in sandbox trial mode
 sqsMiddleware.set( "sandboxmode", true );
+
+// If you dont need to pre-fetch full collection data...
+sqsMiddleware.set( "fulldata", false );
 ```
 
 #### Authentication

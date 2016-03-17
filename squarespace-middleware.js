@@ -27,7 +27,8 @@ var _ = require( "underscore" ),
         sitepassword: null,
         useremail: null,
         userpassword: null,
-        sandboxmode: false
+        sandboxmode: false,
+        fulldata: true
     },
 
 
@@ -232,23 +233,29 @@ getAPIData = function ( callback ) {
 
             // All done, pass the API data to callback
             if ( !apis.length ) {
-                // Now get the fullData for each collection
-                for ( var id in data.collections.collections ) {
-                    collections.push( data.collections.collections[ id ] );
-                }
+                if ( get( "fulldata" ) ) {
+                    // Now get the fullData for each collection
+                    for ( var id in data.collections.collections ) {
+                        collections.push( data.collections.collections[ id ] );
+                    }
 
-                collections.forEach(function ( collection ) {
-                    getAPICollection( collection.id, function ( collection ) {
-                        curr++;
+                    collections.forEach(function ( collection ) {
+                        getAPICollection( collection.id, function ( collection ) {
+                            curr++;
+    
+                            data.collections.collections[ collection.id ] = collection;
 
-                        data.collections.collections[ collection.id ] = collection;
-
-                        if ( curr === collections.length ) {
-                            // Errors first
-                            callback( (errors.length ? errors : null), data );
-                        }
+                            if ( curr === collections.length ) {
+                                // Errors first
+                                callback( (errors.length ? errors : null), data );
+                            }
+                        });
                     });
-                });
+
+                } else {
+                    // Errors first
+                    callback( (errors.length ? errors : null), data );
+                }
 
             } else {
                 getAPI();
@@ -561,7 +568,11 @@ getHeaders = function ( headers ) {
         ret = _.extend( ret, headers );
     }
 
-    return ((get( "sandboxmode" ) && sqsLoginHeaders) ? sqsLoginHeaders : ret);
+    if ( sqsLoginHeaders ) {
+        ret = _.extend( ret, sqsLoginHeaders );
+    }
+
+    return ret;
 };
 
 
