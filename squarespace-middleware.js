@@ -13,28 +13,29 @@ var _ = require( "underscore" ),
     API_GET_COLLECTIONS = "/api/commondata/GetCollections/",
     API_GET_COLLECTION = "/api/commondata/GetCollection/",
     API_GET_BLOCKFIELDS = "/api/block-fields/",
-    API_GET_WIDGETRENDERING = "/api/widget/GetWidgetRendering/",
+    API_GET_WIDGETRENDERING = "/api/widget/GetWidgetRendering/";
     //api/template/GetTemplateTweakSettings/
     //api/template/GetTemplate?templateId=
     //api/page-collection-data?collectionId=
     //api/templates/:templateId
 
-    sqsUser = null,
-    sqsLoginHeaders = null,
-    sqsLoginCrumb = null,
-    config = {
+
+/******************************************************************************
+ * @Public
+*******************************************************************************/
+var Middleware = function () {
+    this.sqsUser = null;
+    this.sqsLoginHeaders = null;
+    this.sqsLoginCrumb = null;
+    this.config = {
         siteurl: null,
         sitepassword: null,
         useremail: null,
         userpassword: null,
         sandboxmode: false,
         fulldata: true
-    },
-
-
-/******************************************************************************
- * @Public
-*******************************************************************************/
+    };
+};
 
 /**
  *
@@ -44,14 +45,14 @@ var _ = require( "underscore" ),
  * @public
  *
  */
-set = function ( key, val ) {
+Middleware.prototype.set = function ( key, val ) {
     // If the user left a trailing slash on the siteurl, remove it.
     if ( key === "siteurl" && val.charAt( val.length - 1 ) === "/" ) {
         val = val.replace( /\/$/, "" );
     }
 
-    config[ key ] = val;
-},
+    this.config[ key ] = val;
+};
 
 
 /**
@@ -61,9 +62,9 @@ set = function ( key, val ) {
  * @public
  *
  */
-get = function ( key ) {
-    return config[ key ];
-},
+Middleware.prototype.get = function ( key ) {
+    return this.config[ key ];
+};
 
 
 /**
@@ -72,9 +73,9 @@ get = function ( key ) {
  * @public
  *
  */
-getCrumb = function () {
-    return sqsLoginCrumb;
-},
+Middleware.prototype.getCrumb = function () {
+    return this.sqsLoginCrumb;
+};
 
 
 /**
@@ -84,28 +85,29 @@ getCrumb = function () {
  * @public
  *
  */
-doLogin = function ( callback ) {
-    var cookie,
+Middleware.prototype.doLogin = function ( callback ) {
+    var self = this,
+        cookie,
         cookieParsed;
 
     // Ensure proper config is set
-    if ( !sqsUser ) {
-        sqsUser = {
-            email: get( "useremail" ),
-            password: get( "userpassword" )
+    if ( !this.sqsUser ) {
+        this.sqsUser = {
+            email: this.get( "useremail" ),
+            password: this.get( "userpassword" )
         };
     }
 
     // POST to login
     request({
         method: "POST",
-        url: (get( "siteurl" ) + API_AUTH_LOGIN),
+        url: (this.get( "siteurl" ) + API_AUTH_LOGIN),
         json: true,
-        headers: getHeaders(),
-        form: sqsUser
+        headers: this.getHeaders(),
+        form: this.sqsUser
 
     }, function ( error, response, json ) {
-        error = getError( error, json );
+        error = self.getError( error, json );
 
         if ( error ) {
             sqsLogger.log( "error", ("Error posting to Squarespace login with middleware => " + error) );
@@ -120,11 +122,11 @@ doLogin = function ( callback ) {
         request({
             url: json.targetWebsite.loginUrl,
             json: true,
-            headers: getHeaders(),
-            qs: sqsUser
+            headers: self.getHeaders(),
+            qs: self.sqsUser
 
         }, function ( error, response ) {
-            error = getError( error );
+            error = self.getError( error );
 
             if ( error ) {
                 sqsLogger.log( "error", ("Error requesting secure login token from Squarespace with middleware => " + error) );
@@ -140,21 +142,21 @@ doLogin = function ( callback ) {
             cookieParsed = cookieParser.parse( cookie );
 
             // Set request headers we will use
-            headers = getHeaders({
+            headers = self.getHeaders({
                 "Cookie": cookie
             });
 
             // Store headers here
-            sqsLoginHeaders = headers;
+            self.sqsLoginHeaders = headers;
 
             // Store crumb here
-            sqsLoginCrumb = cookieParsed.crumb;
+            self.sqsLoginCrumb = cookieParsed.crumb;
 
             // Errors first, there are none :-)
             callback( null, headers );
         });
     });
-},
+};
 
 
 /**
@@ -165,15 +167,17 @@ doLogin = function ( callback ) {
  * @public
  *
  */
-getAPICollection = function ( collectionId, callback ) {
+Middleware.prototype.getAPICollection = function ( collectionId, callback ) {
+    var self = this;
+
     request({
-        url: (get( "siteurl" ) + API_GET_COLLECTION),
+        url: (this.get( "siteurl" ) + API_GET_COLLECTION),
         json: true,
-        headers: sqsLoginHeaders,
-        qs: _.extend( {collectionId: collectionId}, sqsUser )
+        headers: this.sqsLoginHeaders,
+        qs: _.extend( {collectionId: collectionId}, this.sqsUser )
 
     }, function ( error, response, json ) {
-        error = getError( error, json );
+        error = self.getError( error, json );
 
         if ( error ) {
             sqsLogger.log( "error", ("Error requesting collection data from Squarespace with middleware => " + error) );
@@ -184,7 +188,7 @@ getAPICollection = function ( collectionId, callback ) {
             callback( json );
         }
     });
-},
+};
 
 
 /**
@@ -194,19 +198,20 @@ getAPICollection = function ( collectionId, callback ) {
  * @public
  *
  */
-getAPIData = function ( callback ) {
+Middleware.prototype.getAPIData = function ( callback ) {
     var apis = [
             {
                 key: "siteLayout",
-                url: (get( "siteurl" ) + API_GET_SITELAYOUT)
+                url: (this.get( "siteurl" ) + API_GET_SITELAYOUT)
             },
             {
                 key: "collections",
-                url: (get( "siteurl" ) + API_GET_COLLECTIONS)
+                url: (this.get( "siteurl" ) + API_GET_COLLECTIONS)
             }
         ],
         data = {},
-        errors = [];
+        errors = [],
+        self = this;
 
     function getAPI() {
         var api = apis.shift();
@@ -216,11 +221,11 @@ getAPIData = function ( callback ) {
         request({
             url: api.url,
             json: true,
-            headers: sqsLoginHeaders,
-            qs: sqsUser
+            headers: self.sqsLoginHeaders,
+            qs: self.sqsUser
 
         }, function ( error, response, json ) {
-            error = getError( error, json );
+            error = self.getError( error, json );
 
             if ( error ) {
                 sqsLogger.log( "error", ("Error fetching API data from Squarespace with middleware => " + error) );
@@ -233,14 +238,14 @@ getAPIData = function ( callback ) {
 
             // All done, pass the API data to callback
             if ( !apis.length ) {
-                if ( get( "fulldata" ) ) {
+                if ( self.get( "fulldata" ) ) {
                     // Now get the fullData for each collection
                     for ( var id in data.collections.collections ) {
                         collections.push( data.collections.collections[ id ] );
                     }
 
                     collections.forEach(function ( collection ) {
-                        getAPICollection( collection.id, function ( collection ) {
+                        self.getAPICollection( collection.id, function ( collection ) {
                             curr++;
     
                             data.collections.collections[ collection.id ] = collection;
@@ -264,7 +269,7 @@ getAPIData = function ( callback ) {
     }
 
     getAPI();
-},
+};
 
 
 /**
@@ -276,12 +281,14 @@ getAPIData = function ( callback ) {
  * @public
  *
  */
-getHtml = function ( url, qrs, callback ) {
-    url = [get( "siteurl" ), url.replace( /^\/|\/$/g, "" )].join( "/" );
+Middleware.prototype.getHtml = function ( url, qrs, callback ) {
+    var self = this;
+
+    url = [this.get( "siteurl" ), url.replace( /^\/|\/$/g, "" )].join( "/" );
     qrs = (qrs || {});
 
-    if ( get( "sitepassword" ) ) {
-        qrs.password = get( "sitepassword" );
+    if ( this.get( "sitepassword" ) ) {
+        qrs.password = this.get( "sitepassword" );
     }
 
     // Don't allow `json` formatted requests to pass here
@@ -293,11 +300,11 @@ getHtml = function ( url, qrs, callback ) {
 
     request({
         url: url,
-        headers: getHeaders(),
+        headers: this.getHeaders(),
         qs: qrs
 
     }, function ( error, response, html ) {
-        error = getError( error );
+        error = self.getError( error );
 
         if ( error ) {
             sqsLogger.log( "error", ("Error requesting page html from Squarespace with middleware => " + error) );
@@ -309,7 +316,7 @@ getHtml = function ( url, qrs, callback ) {
             status: response.statusCode
         });
     });
-},
+};
 
 
 /**
@@ -321,12 +328,14 @@ getHtml = function ( url, qrs, callback ) {
  * @public
  *
  */
-getJson = function ( url, qrs, callback ) {
-    url = [get( "siteurl" ), url.replace( /^\/|\/$/g, "" )].join( "/" );
+Middleware.prototype.getJson = function ( url, qrs, callback ) {
+    var self = this;
+
+    url = [this.get( "siteurl" ), url.replace( /^\/|\/$/g, "" )].join( "/" );
     qrs = (qrs || {});
 
-    if ( get( "sitepassword" ) ) {
-        qrs.password = get( "sitepassword" );
+    if ( this.get( "sitepassword" ) ) {
+        qrs.password = this.get( "sitepassword" );
     }
 
     qrs.format = "json";
@@ -334,11 +343,11 @@ getJson = function ( url, qrs, callback ) {
     request({
         url: url,
         json: true,
-        headers: getHeaders(),
+        headers: this.getHeaders(),
         qs: qrs
 
     }, function ( error, response, json ) {
-        error = getError( error, json );
+        error = self.getError( error, json );
 
         if ( error ) {
             sqsLogger.log( "error", ("Error requesting page json from Squarespace with middleware => " + error) );
@@ -350,7 +359,7 @@ getJson = function ( url, qrs, callback ) {
             status: response.statusCode
         });
     });
-},
+};
 
 
 /**
@@ -362,18 +371,19 @@ getJson = function ( url, qrs, callback ) {
  * @public
  *
  */
-getJsonAndHtml = function ( url, qrs, callback ) {
+Middleware.prototype.getJsonAndHtml = function ( url, qrs, callback ) {
     var res = {},
-        errors = [];
+        errors = [],
+        self = this;
 
-    getJson( url, qrs, function ( error, json ) {
+    this.getJson( url, qrs, function ( error, json ) {
         if ( error ) {
             errors.push( error );
         }
 
         res.json = json;
 
-        getHtml( url, qrs, function ( error, html ) {
+        self.getHtml( url, qrs, function ( error, html ) {
             if ( error ) {
                 errors.push( error );
             }
@@ -383,7 +393,7 @@ getJsonAndHtml = function ( url, qrs, callback ) {
             callback( (errors.length ? errors : null), res );
         });
     });
-},
+};
 
 
 /**
@@ -403,13 +413,14 @@ getJsonAndHtml = function ( url, qrs, callback ) {
  * }
  *
  */
-getQuery = function ( data, qrs, callback ) {
-    var url = (get( "siteurl" ) + "/" + data.collection + "/");
+Middleware.prototype.getQuery = function ( data, qrs, callback ) {
+    var url = (this.get( "siteurl" ) + "/" + data.collection + "/"),
+        self = this;
 
     qrs = (qrs || {});
 
-    if ( get( "sitepassword" ) ) {
-        qrs.password = get( "sitepassword" );
+    if ( this.get( "sitepassword" ) ) {
+        qrs.password = this.get( "sitepassword" );
     }
 
     qrs.format = "json";
@@ -428,11 +439,11 @@ getQuery = function ( data, qrs, callback ) {
     request({
         url: url,
         json: true,
-        headers: getHeaders(),
+        headers: this.getHeaders(),
         qs: qrs
 
     }, function ( error, response, json ) {
-        error = getError( error, json );
+        error = self.getError( error, json );
 
         if ( error ) {
             sqsLogger.log( "error", ("Error requesting Squarespace:query with middleware => " + error) );
@@ -459,7 +470,7 @@ getQuery = function ( data, qrs, callback ) {
         // Errors first
         callback( error, json );
     });
-},
+};
 
 
 /**
@@ -470,12 +481,14 @@ getQuery = function ( data, qrs, callback ) {
  * @public
  *
  */
-getBlockJson = function ( blockId, callback ) {
+Middleware.prototype.getBlockJson = function ( blockId, callback ) {
+    var self = this;
+
     request({
-        url: (get( "siteurl" ) + API_GET_BLOCKFIELDS + blockId),
+        url: (this.get( "siteurl" ) + API_GET_BLOCKFIELDS + blockId),
         json: true,
-        headers: sqsLoginHeaders,
-        qs: sqsUser
+        headers: this.sqsLoginHeaders,
+        qs: this.sqsUser
 
     }, function ( error, response, json ) {
         // Pass Error on empty block JSON
@@ -483,7 +496,7 @@ getBlockJson = function ( blockId, callback ) {
             json = { error: "Empty block JSON" };
         }
 
-        error = getError( error, json );
+        error = self.getError( error, json );
 
         // Error can come as result
         if ( error ) {
@@ -495,7 +508,7 @@ getBlockJson = function ( blockId, callback ) {
         // Errors first
         callback( error, json );
     });
-},
+};
 
 
 /**
@@ -506,13 +519,15 @@ getBlockJson = function ( blockId, callback ) {
  * @public
  *
  */
-getWidgetHtml = function ( blockJSON, callback ) {
+Middleware.prototype.getWidgetHtml = function ( blockJSON, callback ) {
+    var self = this;
+
     request({
         method: "POST",
-        url: (get( "siteurl" ) + API_GET_WIDGETRENDERING),
-        headers: sqsLoginHeaders,
+        url: (this.get( "siteurl" ) + API_GET_WIDGETRENDERING),
+        headers: this.sqsLoginHeaders,
         qs: {
-            crumb: sqsLoginCrumb
+            crumb: this.sqsLoginCrumb
         },
         form: {
             widgetJSON: JSON.stringify( blockJSON )
@@ -522,7 +537,7 @@ getWidgetHtml = function ( blockJSON, callback ) {
     }, function ( error, response, string ) {
         var json = JSON.parse( string.replace( /\\uFFFD/g, "" ) );
 
-        error = getError( error, json );
+        error = self.getError( error, json );
 
         if ( error ) {
             sqsLogger.log( "error", ("Error requesting widget html from Squarespace with middleware => " + error) );
@@ -533,12 +548,8 @@ getWidgetHtml = function ( blockJSON, callback ) {
         // Errors first
         callback( error, json );
     });
-},
+};
 
-
-/******************************************************************************
- * @Private
-*******************************************************************************/
 
 /**
  *
@@ -547,9 +558,9 @@ getWidgetHtml = function ( blockJSON, callback ) {
  * @private
  *
  */
-getError = function ( error, json ) {
+Middleware.prototype.getError = function ( error, json ) {
     return (typeof json === "object" && json.error ? json.error : error);
-},
+};
 
 /**
  *
@@ -559,7 +570,7 @@ getError = function ( error, json ) {
  * @private
  *
  */
-getHeaders = function ( headers ) {
+Middleware.prototype.getHeaders = function ( headers ) {
     var ret = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.94 Safari/537.36"
     };
@@ -568,8 +579,8 @@ getHeaders = function ( headers ) {
         ret = _.extend( ret, headers );
     }
 
-    if ( sqsLoginHeaders ) {
-        ret = _.extend( ret, sqsLoginHeaders );
+    if ( this.sqsLoginHeaders ) {
+        ret = _.extend( ret, this.sqsLoginHeaders );
     }
 
     return ret;
@@ -580,20 +591,5 @@ getHeaders = function ( headers ) {
  * @Export
 *******************************************************************************/
 module.exports = {
-    // getter / setter for config
-    set: set,
-    get: get,
-
-    // login for user
-    doLogin: doLogin,
-
-    // getter for requests
-    getCrumb: getCrumb,
-    getQuery: getQuery,
-    getJson: getJson,
-    getHtml: getHtml,
-    getJsonAndHtml: getJsonAndHtml,
-    getAPIData: getAPIData,
-    getBlockJson: getBlockJson,
-    getWidgetHtml: getWidgetHtml
+    Middleware: Middleware
 };

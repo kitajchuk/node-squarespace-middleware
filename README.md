@@ -21,7 +21,8 @@ npm update node-squarespace-middleware
 #### Configuration
 ```javascript
 // Get the middleware module
-var sqsMiddleware = require( "node-squarespace-middleware" );
+var nsm = require( "node-squarespace-middleware" );
+var sqsMiddleware = new nsm.Middleware();
 
 // Set config values
 sqsMiddleware.set( "siteurl", "https://yoursite.squarespace.com" );
