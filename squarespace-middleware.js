@@ -312,8 +312,8 @@ Middleware.prototype.getHtml = function ( url, qrs, callback ) {
 
         // Errors first
         callback( error, {
-            html: html,
-            status: response.statusCode
+            html: html ? html : null,
+            status: response ? response.statusCode : null
         });
     });
 };
@@ -355,8 +355,8 @@ Middleware.prototype.getJson = function ( url, qrs, callback ) {
 
         // Errors first
         callback( error, {
-            json: json,
-            status: response.statusCode
+            json: json ? json : null,
+            status: response ? response.statusCode : null
         });
     });
 };
